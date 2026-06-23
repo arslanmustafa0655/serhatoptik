@@ -100,10 +100,17 @@ app.post('/auth/admin-login', async (req, res) => {
         text: `Admin panel giriş doğrulama kodu: ${kod}`
     };
 
-    transporter.sendMail(mailOptions, (error) => {
-        if (error) return res.json({ success: false, message: "Mail gitmedi." });
-        res.json({ success: true, gercekEposta: kullanici.eposta });
-    });
+    transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+        // İŞTE BURASI KRİTİK: Hatayı Render loglarına zorla yazdırıyoruz!
+        console.log("🚨 DİKKAT, MAİL GÖNDERME HATASI:", error); 
+        
+        return res.status(500).json({ success: false, message: "mail gitmedi" });
+    } else {
+        console.log("✅ Mail Başarıyla Gitti:", info.response);
+        return res.status(200).json({ success: true, message: "Mail başarıyla gönderildi" });
+    }
+});
 });
 // 2. ADIM: E-posta Doğrulama Kodunu Kontrol Et ve İçeri Al
 
