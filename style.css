@@ -1,0 +1,186 @@
+
+        :root {
+            --brand-color: #0f172a; /* Şık Gece Mavisi / Antrasit */
+            --brand-hover: #1e293b;
+            --text-main: #334155;
+            --border-color: #e2e8f0;
+        }
+
+        /* 1. Sayfa yüksekliğini 100% yap */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* 2. Body'yi dikey flexbox yap */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* 3. Main kısmını esnek yap, boşluğu doldur */
+main {
+    flex: 1 0 auto;
+}
+
+/* 4. Footer'ı aşağıya it */
+footer {
+    flex-shrink: 0;
+}
+
+        body { 
+            background-color: #ffffff; 
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif; 
+        }
+
+        /* Temiz ve Net Navbar */
+        .navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 0;
+        }
+        .navbar-brand {
+            color: var(--brand-color) !important;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .nav-link {
+            color: var(--text-main) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: var(--brand-color) !important;
+        }
+
+        /* Sade ve Şık Üst Alan (Hero) */
+        .hero-section { 
+            background-color: #f8fafc;
+            padding: 120px 0 60px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--brand-color);
+            margin-bottom: 10px;
+        }
+        .hero-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Sade Kurumsal Kartlar */
+        .product-card { 
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out; 
+        }
+        .product-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 20px rgba(15, 23, 42, 0.05);
+            border-color: #cbd5e1;
+        }
+        .product-card img {
+            border-top-left-radius: 11px;
+            border-top-right-radius: 11px;
+            height: 220px;
+            object-fit: cover;
+            background-color: #f1f5f9;
+        }
+        
+        /* Minimalist Rozet */
+        .card-badge {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        /* Güven Veren Kurumsal Butonlar */
+        .btn-brand {
+            background-color: var(--brand-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: background-color 0.2s;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-hover);
+            color: white;
+        }
+
+        .btn-sepet-link {
+            background-color: #f1f5f9;
+            color: var(--brand-color) !important;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .btn-sepet-link:hover {
+            background-color: #e2e8f0;
+        }
+
+        @media (max-width: 991px) {
+    .navbar-collapse {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        margin-top: 10px;
+    }
+    .navbar-nav {
+        text-align: center;
+    }
+    .btn-sepet-link {
+        margin-top: 10px;
+        display: block;
+    }
+}
+    /* Sayfa iskeletini ayarla */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main içeriği esnet, kalan boşluğu kaplasın */
+main {
+    flex: 1;
+}
+  
+
+/* Kategori Menüsü Stilleri */
+.list-group-item {
+    border: none;
+    padding: 12px 20px;
+    color: #64748b;
+    transition: all 0.2s;
+    background-color: transparent;
+}
+.list-group-item:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+.active-category {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-left: 4px solid #0f172a !important;
+    font-weight: 700;
+}

@@ -1,0 +1,466 @@
+<script>
+    if (localStorage.getItem('serhat_admin_yetkisi') !== 'onaylandi') {
+        window.location.href = '/admin-giris';
+    }
+</script>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli | Serhat Optik</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .sidebar { background-color: #0f172a; min-height: 100vh; width: 260px; position: fixed; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; border-left: 4px solid transparent; transition: 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background-color: #1e293b; color: #fff; border-left-color: #3b82f6; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .table-image { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+
+        /* Sidebar Linklerinin Genel Hali */
+.sidebar a {
+    padding: 15px 20px;
+    color: #94a3b8; /* Hafif gri bir ton */
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease; /* Yumuşak geçiş */
+    border-left: 4px solid transparent; /* Sol tarafta ince bir çizgi için yer */
+}
+
+/* Üzerine gelince (Hover) */
+.sidebar a:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+/* Tıklandığında veya aktifken (Active) */
+.sidebar a.active, .sidebar a:focus, .sidebar a:active {
+    background: linear-gradient(90deg, #3b82f6, #2563eb); /* Mavi renk geçişi */
+    color: #ffffff !important;
+    border-left: 4px solid #ffffff; /* Sol tarafta beyaz bir çizgi belirir */
+    outline: none !important; /* O sinir bozucu mavi çerçeveyi siler */
+}
+
+/* İkonların mesafesini ayarla */
+.sidebar a i {
+    width: 25px; /* İkonlar aynı hizada dursun diye */
+    text-align: center;
+}
+    </style>
+</head>
+
+<body>
+    <div class="sidebar pt-4 d-flex flex-column">
+        <div class="text-center mb-4">
+            <h4 class="text-white fw-bold">SERHAT OPTİK</h4>
+            <span class="badge bg-primary">Admin Panel</span>
+        </div>
+
+        <div class="menu-items flex-grow-1">
+            <a href="#" onclick="sayfaDegistir('dashboard', this)" class="nav-link active">
+                <i class="bi bi-box-seam me-2"></i> Ürün Yönetimi
+            </a>
+            <a href="#" onclick="sayfaDegistir('siparisler', this)" class="nav-link">
+                <i class="bi bi-receipt me-2"></i> Siparişler
+            </a>
+            <a href="#" onclick="sayfaDegistir('kullanicilar', this)" class="nav-link">
+                <i class="bi bi-people me-2"></i> Kullanıcı Yönetimi
+            </a>
+            <a href="/" class="nav-link"><i class="bi bi-shop me-2"></i> Mağazaya Dön</a>
+        </div>
+
+        <div class="sidebar-footer p-3">
+            <button class="btn btn-outline-danger w-100" onclick="localStorage.removeItem('serhat_admin_yetkisi'); window.location.href='/admin-giris';">
+                <i class="bi bi-box-arrow-left me-2"></i> Çıkış Yap
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="sayfa-dashboard">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-dark m-0">Ürün Yönetimi</h2>
+                <button class="btn btn-primary fw-bold px-4" onclick="modalAc('ekle')">
+                    <i class="bi bi-plus-lg me-1"></i> Yeni Ürün Ekle
+                </button>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th class="ps-4">Görsel</th><th>Ürün Adı</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th class="text-end pe-4">İşlemler</th></tr>
+                        </thead>
+                        <tbody id="admin-urun-listesi"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="sayfa-siparisler" class="d-none">
+            <h2 class="fw-bold text-dark mb-4">Müşteri Siparişleri</h2>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Sipariş No</th><th>Müşteri</th><th>Ürün</th><th>Adres</th><th>Fiyat</th><th>Durum</th><th>İşlem</th></tr>
+                        </thead>
+                        <tbody id="adminSiparisListesi"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="sayfa-kullanicilar" class="d-none">
+            <h2 class="fw-bold text-dark mb-4">Kullanıcı Yönetimi</h2>
+            <p>Kullanıcı veritabanı yakında burada...</p>
+        </div>
+    </div>
+
+    <div class="modal fade" id="urunModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalBaslik">Ürün İşlemi</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="urunFormu">
+                    <input type="hidden" id="urun_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ürün Adı</label>
+                        <input type="text" id="urun_adi" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kategori</label>
+                        <select id="kategori" class="form-select">
+                            
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">Fiyat (TL)</label>
+                            <input type="number" id="fiyat" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">Stok Adedi</label>
+                            <input type="number" id="stok" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Görsel URL</label>
+                        <input type="url" id="resim_url" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+            <label class="form-label fw-bold">Açıklama</label>
+            <textarea id="aciklama" class="form-control" rows="3"></textarea>
+        </div>
+                   
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button class="btn btn-primary px-4" onclick="urunKaydet()">Kaydet</button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function sayfaDegistir(hedefSayfa, element) {
+            document.getElementById('sayfa-dashboard').classList.add('d-none');
+            document.getElementById('sayfa-siparisler').classList.add('d-none');
+            document.getElementById('sayfa-kullanicilar').classList.add('d-none');
+            
+            document.getElementById('sayfa-' + hedefSayfa).classList.remove('d-none');
+
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            element.classList.add('active');
+
+            if (hedefSayfa === 'siparisler') tumSiparisleriGetir();
+            if (hedefSayfa === 'dashboard') adminUrunleriGetir();
+        }
+
+        // ... Diğer tüm fonksiyonların (adminUrunleriGetir, tumSiparisleriGetir vb.) burada kalsın ...
+    </script>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const urunModal = new bootstrap.Modal(document.getElementById('urunModal'));
+        let tumUrunler = [];
+
+        // 1. Ürünleri Çek ve Tabloyu Doldur
+        function adminUrunleriGetir() {
+            fetch('/api/urunler')
+                .then(res => res.json())
+                .then(urunler => {
+                    tumUrunler = urunler;
+                    const liste = document.getElementById("admin-urun-listesi");
+                    liste.innerHTML = urunler.map(u => `
+                        <tr>
+                            <td class="ps-4"><img src="${u.resim_url}" class="table-image"></td>
+                            <td class="fw-bold">${u.urun_adi}</td>
+                            <td><span class="badge bg-secondary">${u.kategori}</span></td>
+                            <td>${parseFloat(u.fiyat).toLocaleString('tr-TR')} TL</td>
+                            <td>
+                                <span class="badge ${u.stok > 5 ? 'bg-success' : (u.stok > 0 ? 'bg-warning' : 'bg-danger')}">
+                                    ${u.stok} Adet
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="modalAc('duzenle', ${u.id})"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="urunSil(${u.id})"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                });
+        }
+
+function modalAc(mod, id = null) {
+    const form = document.getElementById("urunFormu");
+    const kategoriSelect = document.getElementById("kategori");
+    
+    // Veritabanındaki tüm ürünlerden benzersiz kategorileri al
+    const kategoriler = [...new Set(tumUrunler.map(u => u.kategori))];
+    
+    // Select kutusunu temizle ve veritabanı kategorileriyle doldur
+    kategoriSelect.innerHTML = kategoriler.map(kat => 
+        `<option value="${kat}">${kat}</option>`
+    ).join('');
+
+    form.reset();
+    document.getElementById("urun_id").value = id || "";
+
+    if (mod === 'ekle') {
+        document.getElementById("modalBaslik").innerText = "Yeni Ürün Ekle";
+    } else {
+        document.getElementById("modalBaslik").innerText = "Ürünü Düzenle";
+        const u = tumUrunler.find(x => x.id === id);
+        if(u) {
+            document.getElementById("urun_adi").value = u.urun_adi;
+            kategoriSelect.value = u.kategori; // Veritabanındaki değeri seçili yap
+            document.getElementById("fiyat").value = u.fiyat;
+            document.getElementById("stok").value = u.stok;
+            document.getElementById("resim_url").value = u.resim_url;
+        }
+    }
+    new bootstrap.Modal(document.getElementById('urunModal')).show();
+}        // 3. Ürün Ekle / Güncelle (Backend'e İstek At)
+        async function urunKaydet() {
+    console.log("Kaydet butonuna tıklandı!");
+
+    const id = document.getElementById("urun_id").value;
+    
+    // Değerleri alırken kontrol et
+    const rawFiyat = document.getElementById("fiyat").value;
+    const rawStok = document.getElementById("stok").value;
+
+    const veri = {
+        urun_adi: document.getElementById("urun_adi").value,
+        kategori: document.getElementById("kategori").value,
+        fiyat: parseFloat(rawFiyat),
+        stok: parseInt(rawStok),
+        resim_url: document.getElementById("resim_url").value,
+        aciklama: document.getElementById("aciklama").value
+    };
+
+    // KRİTİK KONTROL: Eğer içleri boşsa veritabanına gönderme, kullanıcıyı uyar!
+    if (!veri.urun_adi || isNaN(veri.fiyat) || isNaN(veri.stok)) {
+        alert("Kral, Fiyat ve Stok kısımlarını sayısal bir değerle doldurman lazım!");
+        return; 
+    }
+
+    console.log("Sunucuya gönderilen veri:", veri); // Terminalde ne gittiğine bak
+
+    const url = id ? `/api/admin/urunler/${id}` : `/api/admin/urunler`;
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(veri)
+        });
+        
+        const sonuc = await res.json();
+        
+        if (sonuc.success) {
+            alert("Ürün başarıyla kaydedildi!");
+            const modalEl = document.getElementById('urunModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
+            adminUrunleriGetir();
+        } else {
+            alert("Veritabanı reddetti: " + sonuc.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Bir hata oluştu!");
+    }
+}
+        // 4. Ürün Sil
+        async function urunSil(id) {
+            if (!confirm("Bu ürünü silmek istediğine emin misin kral?")) return;
+
+            try {
+                const res = await fetch(`/api/admin/urunler/${id}`, { method: 'DELETE' });
+                const sonuc = await res.json();
+                if (sonuc.success) adminUrunleriGetir();
+                else alert("Hata: " + sonuc.message);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Sayfa açıldığında ürünleri listele
+        document.addEventListener("DOMContentLoaded", adminUrunleriGetir);
+
+        async function kodGonder() {
+    // Kullanıcı buraya e-posta da yazabilir, kullanıcı adı da (serhat_admin gibi)
+    const giris_kimlik = document.getElementById('admin_eposta').value; 
+    const sifre = document.getElementById('admin_sifre').value;
+    
+    if(!giris_kimlik || !sifre) return alert("Kral bilgileri eksiksiz gir!");
+
+    const res = await fetch('/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giris_kimlik, sifre })
+    });
+    const data = await res.json();
+
+    if(data.success) {
+        // İŞTE BURASI ÖNEMLİ: İkinci adımda doğrulamak için, 
+        // sunucudan gelen VERİTABANINDAKİ GERÇEK e-postayı hafızaya alıyoruz.
+        girilenEposta = data.gercekEposta; 
+        
+        document.getElementById('adim1-alani').classList.add('d-none');
+        document.getElementById('adim2-alani').classList.remove('d-none');
+    } else {
+        alert(data.message);
+    }
+}
+
+
+
+// Sayfa açılır açılmaz siparişleri çeken tetikleyici
+document.addEventListener('DOMContentLoaded', () => {
+    tumSiparisleriGetir();
+});
+
+// 1. TÜM SİPARİŞLERİ GRUPLU VE ADRESLİ GETİRME
+async function tumSiparisleriGetir() {
+    try {
+        const res = await fetch('/api/admin/siparisler');
+        const data = await res.json();
+
+        if (data.success) {
+            const tbody = document.getElementById('adminSiparisListesi');
+            tbody.innerHTML = ''; 
+
+            // Sipariş numarasına göre ürünleri aynı çatıda topla
+            const gruplar = data.siparisler.reduce((acc, curr) => {
+                if (!acc[curr.siparis_no]) acc[curr.siparis_no] = [];
+                acc[curr.siparis_no].push(curr);
+                return acc;
+            }, {});
+
+            Object.keys(gruplar).forEach(siparisNo => {
+                const urunler = gruplar[siparisNo];
+                const ilkUrun = urunler[0]; 
+
+                // Ürünleri alt alta listele
+                const urunListesiHtml = urunler.map(u => 
+                    `<div class="border-bottom py-1">${u.urun_adi} <span class="text-muted">(x${u.adet})</span></div>`
+                ).join('');
+
+                const toplamFiyat = urunler.reduce((toplam, u) => toplam + (parseFloat(u.fiyat) * u.adet), 0);
+
+                let badgeClass = 'bg-warning text-dark';
+                if (ilkUrun.durum === 'Kargolandı') badgeClass = 'bg-primary';
+                if (ilkUrun.durum === 'Teslim Edildi') badgeClass = 'bg-success';
+                if (ilkUrun.durum === 'İptal Edildi') badgeClass = 'bg-danger';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${siparisNo}</strong></td>
+                        <td>${ilkUrun.kullanici_eposta}</td>
+                        <td>${urunListesiHtml}</td>
+                        
+                        <!-- ADRES BURADA GÖRÜNECEK -->
+                        <td style="max-width: 200px; word-wrap: break-word;"><small class="text-muted">${ilkUrun.adres || 'Adres Yok'}</small></td>
+                        
+                        <td><strong>${toplamFiyat.toLocaleString('tr-TR')} TL</strong></td>
+                        <td><span class="badge ${badgeClass}">${ilkUrun.durum}</span></td>
+                        <td>
+                            <!-- ONCHANGE İÇİNDE siparisNoDurumGuncelle ÇAĞIRILIYOR (ID DEĞİL, SİPARİŞ NO GİDİYOR) -->
+                            <select class="form-select form-select-sm" onchange="siparisNoDurumGuncelle('${siparisNo}', this.value)">
+                                <option value="Hazırlanıyor" ${ilkUrun.durum === 'Hazırlanıyor' ? 'selected' : ''}>Hazırlanıyor</option>
+                                <option value="Kargolandı" ${ilkUrun.durum === 'Kargolandı' ? 'selected' : ''}>Kargolandı</option>
+                                <option value="Teslim Edildi" ${ilkUrun.durum === 'Teslim Edildi' ? 'selected' : ''}>Teslim Edildi</option>
+                                <option value="İptal Edildi" ${ilkUrun.durum === 'İptal Edildi' ? 'selected' : ''}>İptal Edildi</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (err) { console.error("Sipariş çekme hatası:", err); }
+}
+
+// 2. SİPARİŞ DURUMUNU TOPLU GÜNCELLEME (Frontend-Backend Uyumu Sağlandı)
+async function siparisNoDurumGuncelle(siparisNo, yeniDurum) {
+    if (!siparisNo || !yeniDurum) return;
+    
+    try {
+        // Backend'deki GRUP rotasına gidiyor
+        const res = await fetch(`/api/admin/siparisler/grup/${siparisNo}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ durum: yeniDurum })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          
+            tumSiparisleriGetir(); // Ekranı hemen yeni renklerle tazele
+        } else {
+            alert("Hata: " + data.message);
+        }
+    } catch (e) {
+        console.error("Güncelleme patladı:", e);
+        alert("Sunucu hatası oluştu. Backend rotası bulunamadı.");
+    }
+}
+
+// Sipariş No'ya göre toplu güncelleme tetikleyicisi
+
+   
+
+function sayfaDegistir(hedefSayfa, element) {
+    // 1. Tüm sayfaları gizle
+    document.getElementById('sayfa-dashboard').classList.add('d-none');
+    document.getElementById('sayfa-siparisler').classList.add('d-none');
+    document.getElementById('sayfa-kullanicilar').classList.add('d-none');
+    
+    // 2. İstenen sayfayı göster
+    document.getElementById('sayfa-' + hedefSayfa).classList.remove('d-none');
+
+    // 3. Menüdeki "active" sınıfını yönet
+    // Önce hepsinden 'active' sınıfını sil
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    // Tıklanana 'active' sınıfını ekle
+    element.classList.add('active');
+
+    // 4. Verileri çek (Siparişler için)
+    if (hedefSayfa === 'siparisler') {
+        tumSiparisleriGetir();
+    }
+}
+    </script>
+
+</html>

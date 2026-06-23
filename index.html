@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serhat Optik | Profesyonel Gözlük Mağazası</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+   
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">SERHAT OPTİK</a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-center" id="nav-gosterim-alani">
+                </ul>
+        </div>
+    </div>
+</nav>
+
+    <header class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Net Görüş, Güvenilir Hizmet</h1>
+            <p class="hero-subtitle">Serhat Optik güvencesiyle orijinal dünya markaları ve optik çözümleri.</p>
+        </div>
+    </header>
+
+   <main class="flex-grow-1 container my-5">
+    <div class="row">
+        
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 90px; z-index: 1;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-bold" style="color: #0f172a;">Kategoriler</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="kategori-listesi">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-dark m-0" id="secili-kategori-baslik">Tüm Gözlükler</h4>
+                <span class="text-muted small" id="urun-sayisi"></span>
+            </div>
+            <div class="row g-4" id="urunler-alani">
+                </div>
+        </div>
+
+    </div>
+</main>
+    <footer class="text-center py-4 mt-5 bg-light border-top">
+        <p class="mb-0 small text-muted">&copy; 2026 SERHAT OPTİK | Güvenli ve Kurumsal Alışveriş Altyapısı.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    // Kullanıcı bilgisini çek
+    const aktifKullanici = JSON.parse(localStorage.getItem('serhat_optik_kullanici'));
+
+    // 1. NAVBAR VE SAYAÇ İŞLEMLERİ (Sayfa Yüklenince Çalışır)
+    document.addEventListener("DOMContentLoaded", () => {
+        const navAlani = document.getElementById("nav-gosterim-alani");
+
+        if (aktifKullanici) {
+            navAlani.innerHTML = `
+                <li class="nav-item"><span class="nav-link text-dark fw-bold me-2">👋 ${aktifKullanici.ad_soyad}</span></li>
+                <li class="nav-item"><a class="nav-link" href="/profil">Profilim</a></li>
+                <li class="nav-item"><a class="nav-link" href="/siparislerim">Siparişlerim</a></li>
+                <li class="nav-item">
+                    <a class="btn btn-sepet-link btn-sm ms-3 px-3" href="/sepet">
+                        Sepetim <span class="badge bg-dark ms-1" id="sepet-sayac">0</span>
+                    </a>
+                </li>
+            `;
+            sayacGuncelle();
+        } else {
+            navAlani.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="/login">Giriş Yap / Kayıt Ol</a></li>
+                <li class="nav-item">
+                    <a class="btn btn-sepet-link btn-sm ms-3 px-3" href="/login" onclick="alert('Sepetinizi görmek için lütfen önce giriş yapın!')">
+                        Sepetim
+                    </a>
+                </li>
+            `;
+        }
+    });
+
+    function sayacGuncelle() {
+        if (!aktifKullanici) return;
+        fetch(`/api/sepet/${aktifKullanici.eposta}`)
+            .then(res => res.json())
+            .then(sepet => {
+                let toplam = sepet.reduce((t, u) => t + u.adet, 0);
+                const sepetSayac = document.getElementById("sepet-sayac");
+                if (sepetSayac) sepetSayac.innerText = toplam;
+            });
+    }
+
+    // 2. SEPETE EKLEME FONKSİYONU (Kaybolan efsane geri döndü)
+    function sepeteEkle(urunId) {
+        if (!aktifKullanici) {
+            alert("Sepete ürün eklemek için lütfen önce giriş yapın!");
+            window.location.href = "/login";
+            return;
+        }
+
+        fetch('/api/sepet/ekle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eposta: aktifKullanici.eposta, urun_id: urunId, adet: 1 })
+        })
+        .then(res => res.json())
+        .then(() => {
+            sayacGuncelle();
+            alert("Ürün sepetine eklendi kral!");
+        })
+        .catch(err => console.error("Sepete ekleme hatası:", err));
+    }
+
+    // 3. ÜRÜNLERİ ÇEKME VE KATEGORİ FİLTRELEME SİSTEMİ
+    let tumUrunler = [];
+
+    fetch('/api/urunler')
+        .then(res => res.json())
+        .then(urunler => {
+            tumUrunler = urunler;
+            kategorileriOlustur(urunler);
+            urunleriEkranaBas(urunler, "Tüm Gözlükler");
+        });
+
+    function kategorileriOlustur(urunler) {
+        const benzersizKategoriler = [...new Set(urunler.map(u => u.kategori))];
+        const liste = document.getElementById('kategori-listesi');
+        
+        let html = `<button type="button" class="list-group-item active-category" onclick="kategoriFiltrele('Tümü', this)">Tüm Gözlükler</button>`;
+        
+        benzersizKategoriler.forEach(kat => {
+            if(kat) {
+                html += `<button type="button" class="list-group-item" onclick="kategoriFiltrele('${kat}', this)">${kat}</button>`;
+            }
+        });
+        
+        if(liste) liste.innerHTML = html;
+    }
+
+    function kategoriFiltrele(kategoriAd, tiklananButon) {
+        document.querySelectorAll('#kategori-listesi button').forEach(btn => btn.classList.remove('active-category'));
+        if(tiklananButon) tiklananButon.classList.add('active-category');
+
+        if (kategoriAd === 'Tümü') {
+            urunleriEkranaBas(tumUrunler, "Tüm Gözlükler");
+        } else {
+            const filtrelenmis = tumUrunler.filter(u => u.kategori === kategoriAd);
+            urunleriEkranaBas(filtrelenmis, kategoriAd);
+        }
+    }
+
+    function urunleriEkranaBas(urunlerArray, baslik) {
+        const baslikElementi = document.getElementById("secili-kategori-baslik");
+        const sayiElementi = document.getElementById("urun-sayisi");
+        const urunlerAlani = document.getElementById("urunler-alani");
+
+        if(baslikElementi) baslikElementi.innerText = baslik;
+        if(sayiElementi) sayiElementi.innerText = `${urunlerArray.length} ürün listeleniyor`;
+        
+        if(urunlerArray.length === 0) {
+            urunlerAlani.innerHTML = `<div class="col-12"><div class="alert alert-light text-center py-5 border">Bu kategoride henüz ürün bulunmuyor kral.</div></div>`;
+            return;
+        }
+
+        let html = "";
+        urunlerArray.forEach(urun => {
+            let stokGorseli = "";
+            let butonKodu = "";
+
+            if (urun.stok > 5) {
+                stokGorseli = `<span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size:0.75rem;">Stok: ${urun.stok}</span>`;
+                butonKodu = `<button class="btn btn-brand btn-sm" onclick="sepeteEkle(${urun.id})">Sepete Ekle</button>`;
+            } 
+            else if (urun.stok > 0 && urun.stok <= 5) {
+                stokGorseli = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle rounded-pill px-2 py-1" style="font-size:0.75rem;">🔥 Son ${urun.stok} Ürün!</span>`;
+                butonKodu = `<button class="btn btn-brand btn-sm" onclick="sepeteEkle(${urun.id})">Sepete Ekle</button>`;
+            } 
+            else {
+                stokGorseli = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:0.75rem;">Tükendi</span>`;
+                butonKodu = `<button class="btn btn-secondary btn-sm" disabled style="cursor: not-allowed;">Tükendi</button>`;
+            }
+
+            html += `
+                <div class="col-md-4">
+                    <div class="card product-card h-100">
+                        <img src="${urun.resim_url}" class="card-img-top" alt="${urun.urun_adi}">
+                        <div class="card-body d-flex flex-column pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="card-badge">${urun.kategori}</span>
+                                ${stokGorseli}
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1" style="font-size: 1.15rem;">${urun.urun_adi}</h5>
+                            <p class="small text-muted fw-light mb-4">${urun.aciklama}</p>
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <span class="fs-5 text-dark fw-bold">${parseFloat(urun.fiyat).toLocaleString('tr-TR')} TL</span>
+                                ${butonKodu}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        
+        if(urunlerAlani) urunlerAlani.innerHTML = html;
+    }
+</script> 
+</body>
+
+<footer class="footer mt-5 py-5 border-top" style="background-color: #0f172a; color: #cbd5e1;">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h5 class="fw-bold text-white mb-3">SERHAT OPTİK</h5>
+                <p class="small" style="line-height: 1.8; color: #94a3b8;">
+                    Dünya markalarını en uygun fiyatlarla kapınıza kadar getiriyoruz. 
+                    Kaliteli görüş, güvenilir alışveriş anlayışıyla hizmetinizdeyiz.
+                </p>
+            </div>
+            
+            <div class="col-lg-4">
+                <h5 class="fw-bold text-white mb-3">Hızlı Erişim</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/" class="text-decoration-none small" style="color: #94a3b8;">Anasayfa</a></li>
+                    <li class="mb-2"><a href="/siparislerim" class="text-decoration-none small" style="color: #94a3b8;">Siparişlerim</a></li>
+                    <li class="mb-2"><a href="/sepet" class="text-decoration-none small" style="color: #94a3b8;">Sepetim</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+                <h5 class="fw-bold text-white mb-3">İletişim</h5>
+                <p class="small mb-1" style="color: #94a3b8;">Polatlı/Ankara, Türkiye</p>
+                <p class="small mb-0" style="color: #94a3b8;">serhatoptik@gmail.com</p>
+            </div>
+        </div>
+        
+        <hr class="my-4" style="border-color: #1e293b;">
+        
+        <div class="d-flex justify-content-between align-items-center">
+            <p class="mb-0 small" style="color: #64748b;">&copy; 2026 SERHAT OPTİK | Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+</footer>
+</html>

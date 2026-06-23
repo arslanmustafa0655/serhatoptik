@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | Serhat Optik</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; }
+        .profile-card { max-width: 600px; margin: 50px auto; border: none; }
+        /* Buton üzerine gelince o tatlı etkileşim */
+        .btn:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+</head>
+
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg" style="background-color: #0f172a;">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-white" href="/">SERHAT OPTİK</a>
+            
+            <div class="d-flex justify-content-end">
+                <a class="btn btn-sm text-white px-3" 
+                   href="/" 
+                   style="border: 1px solid rgba(255,255,255,0.3); transition: 0.2s;">
+                   ‹ Alışverişe Dön
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1">
+        <div class="container">
+            <div class="card profile-card shadow-sm p-4 bg-white rounded-3">
+                <div class="text-center mb-4">
+                    <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2" style="width: 80px; height: 80px;" id="profil-avatar">
+                        SO
+                    </div>
+                    <h3 class="mt-3 fw-bold text-dark" id="profil-isim">Kullanıcı Adı</h3>
+                    <p class="text-muted" id="profil-rol">Serhat Optik Müşterisi</p>
+                </div>
+
+                <hr>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">AD SOYAD</label>
+                        <input type="text" id="info-ad" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">KULLANICI ADI</label>
+                        <input type="text" id="info-kullanici-adi" class="form-control" readonly style="background-color: #f1f5f9;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">E-POSTA ADRESİ</label>
+                        <input type="email" id="info-eposta" class="form-control" readonly>
+                    </div>
+                </div>
+                <div class="mt-5 d-flex gap-2">
+                    <button class="btn btn-outline-danger w-100 py-2 fw-bold" onclick="oturumuKapat()">Oturumu Kapat</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const aktifKullanici = JSON.parse(localStorage.getItem('serhat_optik_kullanici'));
+
+            if (!aktifKullanici) {
+                alert("Lütfen önce giriş yapın!");
+                window.location.href = "/login";
+                return;
+            }
+
+            document.getElementById("profil-isim").innerText = aktifKullanici.ad_soyad;
+            document.getElementById("info-ad").value = aktifKullanici.ad_soyad;
+            document.getElementById("info-eposta").value = aktifKullanici.eposta;
+            document.getElementById("info-kullanici-adi").value = "@" + aktifKullanici.kullanici_adi;
+            
+            const harfler = aktifKullanici.ad_soyad.split(" ").map(n => n[0]).join("").toUpperCase();
+            document.getElementById("profil-avatar").innerText = harfler.slice(0, 2);
+        });
+
+        function oturumuKapat() {
+            localStorage.removeItem('serhat_optik_kullanici');
+            alert("Oturum kapatıldı.");
+            window.location.href = "/";
+        }
+    </script>
+
+    <footer class="footer mt-auto py-5 border-top" style="background-color: #0f172a; color: #cbd5e1;">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="fw-bold text-white mb-3">SERHAT OPTİK</h5>
+                    <p class="small" style="line-height: 1.8; color: #94a3b8;">
+                        Dünya markalarını en uygun fiyatlarla kapınıza kadar getiriyoruz. 
+                        Kaliteli görüş, güvenilir alışveriş anlayışıyla hizmetinizdeyiz.
+                    </p>
+                </div>
+                
+                <div class="col-lg-4">
+                    <h5 class="fw-bold text-white mb-3">Hızlı Erişim</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="/" class="text-decoration-none small" style="color: #94a3b8;">Anasayfa</a></li>
+                        <li class="mb-2"><a href="/siparislerim" class="text-decoration-none small" style="color: #94a3b8;">Siparişlerim</a></li>
+                        <li class="mb-2"><a href="/sepet" class="text-decoration-none small" style="color: #94a3b8;">Sepetim</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4">
+                    <h5 class="fw-bold text-white mb-3">İletişim</h5>
+                    <p class="small mb-1" style="color: #94a3b8;">Polatlı/Ankara, Türkiye</p>
+                    <p class="small mb-0" style="color: #94a3b8;">serhatoptik@gmail.com</p>
+                </div>
+            </div>
+            
+            <hr class="my-4" style="border-color: #1e293b;">
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="mb-0 small" style="color: #64748b;">&copy; 2026 SERHAT OPTİK | Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
