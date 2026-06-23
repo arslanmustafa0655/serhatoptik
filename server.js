@@ -108,6 +108,8 @@ app.post('/auth/admin-verify', async (req, res) => {
     } catch (e) {
         return res.json({ success: false, message: "Sunucu hatası: İşlem tamamlanamadı." });
     }
+    console.log("Girilen kod:", kod);
+console.log("DB'deki kod (hash):", k.reset_kodu);
 });
 
 // ==========================================
