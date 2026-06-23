@@ -24,13 +24,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Postacıyı global olarak tanımlıyoruz
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, 
     auth: {
-       user: process.env.GMAIL_USER, 
+        user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS
     }
 });
-
 
 // ==========================================
 // 💳 IYZICO TEST (SANDBOX) AYARLARI
@@ -286,13 +287,15 @@ app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
     if (updateError) return res.json({ success: false, message: "Veri tabanı güncelleme hatası." });
 
     // NODEMAILER GMAIL SERVİSİ
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER, 
-        pass: process.env.GMAIL_PASS// Google Uygulama Şifren
-      }
-    });
+ const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, 
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
+    }
+});
 
     const mailOptions = {
       from: '"Serhat Optik" <arslanmustafa0655@gmail.com>',
