@@ -25,14 +25,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Postacıyı global olarak tanımlıyoruz
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    port: 587,
+    secure: false, // 587 portu için burası KESİNLİKLE false olmalı
+    requireTLS: true, // Ancak TLS kullanmaya zorluyoruz
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS
+    },
+    tls: {
+        // Render'ın sertifikasıyla Google'ınki çakışmasın diye güvenlik duvarını esnetiyoruz
+        rejectUnauthorized: false
     }
 });
-
 // ==========================================
 // 💳 IYZICO TEST (SANDBOX) AYARLARI
 // ==========================================
@@ -287,13 +291,18 @@ app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
     if (updateError) return res.json({ success: false, message: "Veri tabanı güncelleme hatası." });
 
     // NODEMAILER GMAIL SERVİSİ
- const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    port: 587,
+    secure: false, // 587 portu için burası KESİNLİKLE false olmalı
+    requireTLS: true, // Ancak TLS kullanmaya zorluyoruz
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS
+    },
+    tls: {
+        // Render'ın sertifikasıyla Google'ınki çakışmasın diye güvenlik duvarını esnetiyoruz
+        rejectUnauthorized: false
     }
 });
 
