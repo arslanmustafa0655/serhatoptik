@@ -16,8 +16,8 @@ const port = 3000;
 // ==========================================
 // 🔗 SUPABASE BULUT BAĞLANTI AYARLARI
 // ==========================================
-const SUPABASE_URL = 'https://ldhnqfosvhbntocoloyg.supabase.co'; // KENDİ SUPABASE URL'İNİ YAZ KRAL
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkaG5xZm9zdmhibnRvY29sb3lnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODQsImV4cCI6MjA5NzI4MDk4NH0.Hd1Vb6qeSK7nD4_iFHY11FH47e9jN1rbPAzc4RhjB9M'; // KENDİ ANON KEY'İNİ YAZ KRAL
+const SUPABASE_URL = process.env.SUPABASE_URL; // KENDİ SUPABASE URL'İNİ YAZ KRAL
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ... diğer require'lar (bcrypt, supabase, vs.) ...
@@ -26,8 +26,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'arslanmustafa0655@gmail.com',
-        pass: 'adum qntz fksj dqpe'
+       user: process.env.GMAIL_USER, 
+        pass: process.env.GMAIL_PASS
     }
 });
 
@@ -282,13 +282,13 @@ app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'arslanmustafa0655@gmail.com', // Kendi Gmail adresini yaz kral
-        pass: 'adum qntz fksj dqpe'     // Google Uygulama Şifren
+        user: process.env.GMAIL_USER, 
+        pass: process.env.GMAIL_PASS// Google Uygulama Şifren
       }
     });
 
     const mailOptions = {
-      from: '"Serhat Optik" <senin_epostan@gmail.com>',
+      from: '"Serhat Optik" <arslanmustafa0655@gmail.com>',
       to: temizEposta,
       subject: 'Şifre Sıfırlama Doğrulama Kodu',
       html: `<h2>Serhat Optik</h2><p>Doğrulama kodunuz: <b style="font-size:24px;">${onayKodu}</b></p><p>Süre: 5 Dakika</p>`
