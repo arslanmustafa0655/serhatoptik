@@ -43,7 +43,7 @@ app.get('/admin-giris', (req, res) => res.sendFile(path.join(__dirname, 'admin-g
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 // ==========================================
-// 1. SUNUCU TABANLI + VERİTABANI BAĞLANTILI ADMİN KALKANI
+// 1. SUNUCU TABANLI DİREKT ADMİN GİRİŞİ (MAİLSİZ)
 // ==========================================
 app.post('/auth/admin-login', async (req, res) => {
     const { giris_kimlik, sifre } = req.body;
@@ -60,56 +60,22 @@ app.post('/auth/admin-login', async (req, res) => {
 
     const kullanici = kullanicilar[0];
     const sifreDogruMu = await bcrypt.compare(sifre, kullanici.sifre);
-    if (!sifreDogruMu) return res.json({ success: false, message: "Şifre yanlış!" });
-
-    const kod = Math.floor(100000 + Math.random() * 900000);
-    const kriptoluKod = await bcrypt.hash(kod.toString(), 10);
-
-    await supabase.from('kullanicilar')
-        .update({ reset_kodu: kriptoluKod }) 
-        .eq('id', kullanici.id);
-
-    // İŞTE YENİ RESEND MOTORU (İçeriğe dokunulmadı)
-    try {
-        const data = await resend.emails.send({
-            from: 'Acme <onboarding@resend.dev>', // Ücretsiz sürüm zorunluluğu
-            to: [kullanici.eposta],
-            subject: 'Admin Giriş Doğrulama',
-            text: `Admin panel giriş doğrulama kodu: ${kod}`
-        });
-
-        console.log("✅ Admin Maili Başarıyla Gitti:", data);
-        return res.status(200).json({ success: true, message: "Mail başarıyla gönderildi" });
-    } catch (error) {
-        console.log("🚨 RESEND ADMİN MAİL HATASI:", error);
-        return res.status(500).json({ success: false, message: "mail gitmedi" });
+    
+    if (!sifreDogruMu) {
+        return res.json({ success: false, message: "Şifre yanlış!" });
     }
-});
 
-app.post('/auth/admin-verify', async (req, res) => {
-    try {
-        const { eposta, kod } = req.body;
-        if (!eposta || !kod) return res.json({ success: false, message: "Bağlantı koptu, e-posta veya kod eksik!" });
-
-        const { data: k, error } = await supabase
-            .from('kullanicilar')
-            .select('reset_kodu')
-            .eq('eposta', eposta.toLowerCase().trim())
-            .single();
-
-        if (error || !k) return res.json({ success: false, message: "Kullanıcı bulunamadı veya veritabanı hatası!" });
-        if (!k.reset_kodu) return res.json({ success: false, message: "Doğrulama kodu geçersiz veya süresi dolmuş!" });
-
-        const kodDogruMu = await bcrypt.compare(kod.toString(), k.reset_kodu);
-        if (!kodDogruMu) return res.json({ success: false, message: "Hatalı kod girdiniz!" });
-
-        await supabase.from('kullanicilar').update({ reset_kodu: null }).eq('eposta', eposta.toLowerCase().trim());
-        return res.json({ success: true });
-    } catch (e) {
-        return res.json({ success: false, message: "Sunucu hatası: İşlem tamamlanamadı." });
-    }
-    console.log("Girilen kod:", kod);
-console.log("DB'deki kod (hash):", k.reset_kodu);
+    // ŞİFRE DOĞRUYSA DİREKT İÇERİ AL! (Mail yok, kod yok)
+    return res.json({ 
+        success: true, 
+        message: "Giriş başarılı, yönlendiriliyorsunuz...",
+        kullanici: {
+            ad_soyad: kullanici.ad_soyad,
+            kullanici_adi: kullanici.kullanici_adi,
+            eposta: kullanici.eposta,
+            rol: kullanici.rol
+        }
+    });
 });
 
 // ==========================================
@@ -174,7 +140,7 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // ==========================================
-// 3. KRİPTOLU OTP KODU ÜRETİP MAİL ATAN MOTOR
+// 3. KRİPTOLU OTP KODU ÜRETİP MAİL ATAN MOTOR (Şifremi Unuttum)
 // ==========================================
 app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
   const { eposta } = req.body;
@@ -201,10 +167,9 @@ app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
 
     if (updateError) return res.json({ success: false, message: "Veri tabanı güncelleme hatası." });
 
-    // İŞTE YENİ RESEND MOTORU (İçeriğe dokunulmadı)
     try {
         const data = await resend.emails.send({
-            from: 'Acme <onboarding@resend.dev>', // Ücretsiz sürüm zorunluluğu
+            from: 'Acme <onboarding@resend.dev>', 
             to: [temizEposta],
             subject: 'Şifre Sıfırlama Doğrulama Kodu',
             html: `<h2>Serhat Optik</h2><p>Doğrulama kodunuz: <b style="font-size:24px;">${onayKodu}</b></p><p>Süre: 5 Dakika</p>`
