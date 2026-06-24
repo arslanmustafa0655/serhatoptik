@@ -48,14 +48,16 @@
                 const data = await res.json();
 
                 if(data.success) {
-                    // Backend'den gelen admin yetkisini tarayıcıya kaydet
+                    // 🚨 KRİTİK DOKUNUŞ: Hem eski anahtarı hem yeni anahtarı yazıyoruz ki admin.html içeri alsın!
+                    localStorage.setItem('serhat_admin_yetkisi', 'onaylandi');
                     localStorage.setItem('serhat_optik_kullanici', JSON.stringify(data.kullanici));
-                    // Bekletmeden direkt admin paneline uçur!
+                    
+                    // Artık admin.html seni kapı dışarı edemez!
                     window.location.href = '/admin'; 
                 } else {
-                    // Şifre falan yanlışsa uyarı ver
                     alert(data.message);
                     btn.disabled = false;
+                    btn.innerText = antiqua;
                     btn.innerText = eskiMetin;
                 }
             } catch (err) {
