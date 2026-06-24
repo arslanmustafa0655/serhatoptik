@@ -3,7 +3,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend'); // Nodemailer gitti, Resend geldi!
-
+const nodemailer = require('nodemailer');
 const app = express();
 const port = 3000;
 
@@ -142,6 +142,9 @@ app.post('/auth/login', async (req, res) => {
 // ==========================================
 // 3. KRİPTOLU OTP KODU ÜRETİP MAİL ATAN MOTOR (Şifremi Unuttum)
 // ==========================================
+// ==========================================
+// 3. KRİPTOLU OTP KODU ÜRETİP MAİL ATAN MOTOR (Şifremi Unuttum)
+// ==========================================
 app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
   const { eposta } = req.body;
   const temizEposta = eposta.toLowerCase().trim();
@@ -167,20 +170,38 @@ app.post('/auth/sifre-unuttum-kod-gonder', async (req, res) => {
 
     if (updateError) return res.json({ success: false, message: "Veri tabanı güncelleme hatası." });
 
-    try {
-        const data = await resend.emails.send({
-            from: 'Acme <onboarding@resend.dev>', 
-            to: [temizEposta],
-            subject: 'Şifre Sıfırlama Doğrulama Kodu',
-            html: `<h2>Serhat Optik</h2><p>Doğrulama kodunuz: <b style="font-size:24px;">${onayKodu}</b></p><p>Süre: 5 Dakika</p>`
-        });
+    // YENİLMEZ NODEMAILER ZIRHI (Render'ın Timeout Hatasını Çözen Kısım)
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        requireTLS: true,
+        family: 4, // İŞTE BÜYÜ BURADA! Sunucuyu IPv4 kullanmaya zorlar, timeout hatasını yok eder!
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_PASS
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
 
-        console.log("✅ Şifre Sıfırlama Maili Gitti:", data);
+    const mailOptions = {
+        from: '"Serhat Optik" <' + process.env.GMAIL_USER + '>',
+        to: temizEposta, // Artık herkese gidecek!
+        subject: 'Şifre Sıfırlama Doğrulama Kodu',
+        html: `<h2>Serhat Optik</h2><p>Doğrulama kodunuz: <b style="font-size:24px;">${onayKodu}</b></p><p>Süre: 5 Dakika</p>`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log("🚨 GMAIL GÖNDERME HATASI:", error);
+            return res.json({ success: false, message: "Mail fırlatılamadı." });
+        }
+        console.log("✅ Şifre Sıfırlama Maili Herkese Gitti:", info.response);
         res.json({ success: true });
-    } catch (mailError) {
-        console.log("🚨 RESEND SIFRE SIFIRLAMA HATASI:", mailError);
-        res.json({ success: false, message: "Mail fırlatılamadı." });
-    }
+    });
 
   } catch {
     res.json({ success: false, message: "Kripto hatası." });
