@@ -434,4 +434,59 @@ app.put('/api/admin/siparisler/grup/:siparis_no', async (req, res) => {
     }
 });
 
+// ==========================================
+// ADMIN - KULLANICI YÖNETİMİ
+// ==========================================
+
+// 1. Tüm Kullanıcıları Getir
+app.get('/api/admin/kullanicilar', async (req, res) => {
+    try {
+        // Şifreleri çekmiyoruz, güvenli kalıyor. Sadece gerekenleri alıyoruz.
+        const { data, error } = await supabase
+            .from('kullanicilar')
+            .select('id, ad_soyad, kullanici_adi, eposta, rol')
+            .order('id', { ascending: true }); // ID'ye göre sırala
+
+        if (error) throw error;
+        res.json({ success: true, kullanicilar: data });
+    } catch (e) {
+        console.error("Kullanıcı çekme hatası:", e);
+        res.json({ success: false, message: "Kullanıcılar getirilemedi." });
+    }
+});
+
+// 2. Kullanıcı Yetkisini (Rolünü) Değiştir (admin <-> user)
+app.put('/api/admin/kullanicilar/:id/rol', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rol } = req.body; 
+        
+        const { error } = await supabase
+            .from('kullanicilar')
+            .update({ rol })
+            .eq('id', id);
+            
+        if (error) throw error;
+        res.json({ success: true, message: "Kullanıcı yetkisi güncellendi." });
+    } catch (e) {
+        res.json({ success: false, message: "Yetki güncellenemedi." });
+    }
+});
+
+// 3. Kullanıcıyı Sistemden Sil (Banla)
+app.delete('/api/admin/kullanicilar/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('kullanicilar')
+            .delete()
+            .eq('id', id);
+            
+        if (error) throw error;
+        res.json({ success: true, message: "Kullanıcı başarıyla silindi." });
+    } catch (e) {
+        res.json({ success: false, message: "Kullanıcı silinemedi." });
+    }
+});
+
 app.listen(port, () => console.log(`🚀 Sunucu Bulut Veri Tabanına Bağlandı: http://localhost:${port}`));
